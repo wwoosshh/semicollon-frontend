@@ -43,12 +43,15 @@ export function ChannelChat({
   const [text, setText] = useState("");
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Whether the user is currently pinned to the bottom (true = follow new messages).
+  const stickRef = useRef(true);
 
   // Load recent history for this channel.
   useEffect(() => {
     let active = true;
     setMessages([]);
+    stickRef.current = true; // a fresh channel starts pinned to the bottom
     (async () => {
       const hist = await api<ChatMessage[]>(`/channels/${channelId}/messages`);
       if (active) setMessages(hist);
@@ -81,10 +84,19 @@ export function ChannelChat({
     };
   }, [channelId]);
 
-  // Auto-scroll to newest.
+  // Keep pinned to the bottom ONLY when the user is already near the bottom,
+  // scrolling the message container itself (never the page). If they've scrolled
+  // up to read history, new messages won't yank them back down.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = scrollRef.current;
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight;
   }, [messages]);
+
+  function onMessagesScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  }
 
   function send(e: React.FormEvent) {
     e.preventDefault();
@@ -122,7 +134,11 @@ export function ChannelChat({
       </div>
 
       {/* Message area */}
-      <div className="h-[60vh] overflow-y-auto border-t border-[var(--line)] py-4">
+      <div
+        ref={scrollRef}
+        onScroll={onMessagesScroll}
+        className="h-[60vh] overflow-y-auto border-t border-[var(--line)] py-4"
+      >
         {messages.length === 0 ? (
           <p className="py-12 text-center font-mono text-[0.75rem] uppercase tracking-[0.1em] text-[var(--muted-ink)]">
             아직 메시지가 없습니다 — 첫 메시지를 보내보세요
@@ -160,7 +176,6 @@ export function ChannelChat({
             })}
           </ul>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Composer */}
