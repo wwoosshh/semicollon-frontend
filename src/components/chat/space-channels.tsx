@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { MonoLabel } from "@/components/ui/mono-label";
 import { Button } from "@/components/ui/button";
 import { ChannelChat } from "@/components/chat/channel-chat";
+import { VoiceRoom } from "@/components/chat/voice-room";
 import { cn } from "@/lib/utils";
 
 interface Channel {
@@ -83,15 +84,16 @@ export function SpaceChannels({
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState("일반");
+  const [newType, setNewType] = useState<"text" | "voice">("text");
 
   const createM = useMutation({
-    mutationFn: (vars: { name: string; category: string }) =>
+    mutationFn: (vars: { name: string; category: string; type: "text" | "voice" }) =>
       api<Channel>(`/spaces/${spaceId}/channels`, {
         method: "POST",
         body: JSON.stringify({
           name: vars.name,
           category: vars.category,
-          type: "text",
+          type: vars.type,
         }),
       }),
     onSuccess: (ch) => {
@@ -100,6 +102,7 @@ export function SpaceChannels({
       setShowCreate(false);
       setNewName("");
       setNewCategory("일반");
+      setNewType("text");
     },
   });
 
@@ -107,7 +110,11 @@ export function SpaceChannels({
     e.preventDefault();
     const name = newName.trim();
     if (!name) return;
-    createM.mutate({ name, category: newCategory.trim() || "일반" });
+    createM.mutate({
+      name,
+      category: newCategory.trim() || "일반",
+      type: newType,
+    });
   }
 
   // ── Rename / Delete ───────────────────────────────────────────────────
@@ -186,6 +193,7 @@ export function SpaceChannels({
       <ul>
         {list.map((ch) => {
           const on = ch.id === selectedId;
+          const isVoice = ch.type === "voice";
           return (
             <li key={ch.id}>
               <button
@@ -200,7 +208,7 @@ export function SpaceChannels({
                 )}
               >
                 <span aria-hidden className="text-[var(--muted-ink)]">
-                  #
+                  {isVoice ? "♪" : "#"}
                 </span>
                 <span className="truncate">{ch.name}</span>
               </button>
@@ -230,6 +238,37 @@ export function SpaceChannels({
             placeholder="카테고리"
             className="h-8 w-full rounded-[2px] border border-[var(--line)] bg-[var(--paper)] px-2 font-mono text-[0.8125rem] text-[var(--ink)] outline-none placeholder:text-[var(--muted-ink)] focus-visible:border-[var(--ink)]"
           />
+          {/* Type toggle — 텍스트 / 음성 segmented mono buttons */}
+          <div
+            role="radiogroup"
+            aria-label="채널 유형"
+            className="flex rounded-[2px] border border-[var(--line)]"
+          >
+            {([
+              ["text", "텍스트"],
+              ["voice", "음성"],
+            ] as const).map(([value, label], i) => {
+              const active = newType === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setNewType(value)}
+                  className={cn(
+                    "h-8 flex-1 font-mono text-[0.75rem] uppercase tracking-[0.08em] transition-colors",
+                    i === 1 && "border-l border-[var(--line)]",
+                    active
+                      ? "bg-[var(--ink)] text-[var(--paper)]"
+                      : "bg-transparent text-[var(--ink-2)] hover:bg-[var(--paper-2)] hover:text-[var(--ink)]",
+                  )}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           <div className="flex items-center gap-2">
             <Button
               type="submit"
@@ -284,7 +323,7 @@ export function SpaceChannels({
               <optgroup key={category} label={category}>
                 {list.map((ch) => (
                   <option key={ch.id} value={ch.id}>
-                    # {ch.name}
+                    {ch.type === "voice" ? "♪" : "#"} {ch.name}
                   </option>
                 ))}
               </optgroup>
@@ -341,7 +380,7 @@ export function SpaceChannels({
                 ) : (
                   <h2 className="flex items-baseline gap-1.5 font-mono text-[0.9375rem] tracking-[0.02em] text-[var(--ink)]">
                     <span aria-hidden className="text-[var(--muted-ink)]">
-                      #
+                      {selected.type === "voice" ? "♪" : "#"}
                     </span>
                     {selected.name}
                   </h2>
@@ -402,8 +441,16 @@ export function SpaceChannels({
                 </div>
               )}
 
-              {/* Chat */}
-              <ChannelChat channelId={selected.id} canSend={canSend} />
+              {/* Body: voice room or text chat */}
+              {selected.type === "voice" ? (
+                <VoiceRoom
+                  channelId={selected.id}
+                  channelName={selected.name}
+                  canJoin={canSend}
+                />
+              ) : (
+                <ChannelChat channelId={selected.id} canSend={canSend} />
+              )}
             </>
           ) : (
             <p className="py-12 text-center font-mono text-[0.75rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
