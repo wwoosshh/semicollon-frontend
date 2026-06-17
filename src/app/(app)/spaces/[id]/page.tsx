@@ -20,10 +20,11 @@ import { AnnouncementList } from "@/components/content/announcement-list";
 import { BoardList } from "@/components/content/board-list";
 import { SpaceEventList } from "@/components/calendar/space-event-list";
 import { SpaceChat } from "@/components/chat/space-chat";
+import { FilesPanel } from "@/components/files/files-panel";
 import { cn } from "@/lib/utils";
 
-type Tab = "개요" | "공지" | "게시판" | "일정" | "채팅";
-const TABS: readonly Tab[] = ["개요", "공지", "게시판", "일정", "채팅"];
+type Tab = "개요" | "공지" | "게시판" | "일정" | "채팅" | "파일";
+const TABS: readonly Tab[] = ["개요", "공지", "게시판", "일정", "채팅", "파일"];
 
 function InfoRow({
   label,
@@ -301,6 +302,8 @@ export default function SpaceDetailPage() {
         )}
 
         {tab === "채팅" && <SpaceChat spaceId={id} />}
+
+        {tab === "파일" && <FilesPanel spaceId={id} canManage={canManage} />}
       </div>
     </div>
   );
