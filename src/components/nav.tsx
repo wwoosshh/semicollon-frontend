@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 export const NAV_ITEMS = [
   { num: "01", label: "홈", href: "/" },
   { num: "02", label: "멤버", href: "/members" },
+  { num: "03", label: "활동공간", href: "/spaces" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
