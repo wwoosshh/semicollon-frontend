@@ -19,9 +19,11 @@ import { cn } from "@/lib/utils";
 
 export function FilesPanel({
   spaceId,
+  isMember,
   canManage,
 }: {
   spaceId: string;
+  isMember: boolean;
   canManage: boolean;
 }) {
   const qc = useQueryClient();
@@ -84,59 +86,67 @@ export function FilesPanel({
 
   return (
     <div>
-      {/* Intake controls */}
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        className={cn(
-          "flex flex-col items-center gap-3 border border-dashed px-6 py-10 text-center transition-colors",
-          dragging
-            ? "border-[var(--accent)] bg-[var(--paper-2)]"
-            : "border-[var(--line)] bg-[var(--paper)]",
-        )}
-      >
-        <p className="font-mono text-[0.75rem] uppercase tracking-[0.1em] text-[var(--ink-2)]">
-          프로젝트 폴더를 여기에 드래그앤드롭
-        </p>
-        <p className="font-mono text-[0.6875rem] tracking-[0.04em] text-[var(--muted-ink)]">
-          파일 내용이 아니라 구조(경로)만 저장됩니다
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => inputRef.current?.click()}
-          disabled={saveM.isPending}
-          className="mt-1 font-mono text-[0.8125rem] tracking-[0.06em]"
+      {/* Intake controls — members only */}
+      {isMember ? (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          className={cn(
+            "flex flex-col items-center gap-3 border border-dashed px-6 py-10 text-center transition-colors",
+            dragging
+              ? "border-[var(--accent)] bg-[var(--paper-2)]"
+              : "border-[var(--line)] bg-[var(--paper)]",
+          )}
         >
-          {saveM.isPending ? "저장 중…" : "폴더 선택"}
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          onChange={onPick}
-          className="hidden"
-          // @ts-expect-error — non-standard directory upload attributes
-          webkitdirectory=""
-          directory=""
-        />
-        {saved !== null && (
-          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--accent)]">
-            {saved > 0
-              ? `${saved}개 파일 구조 저장됨`
-              : "무시되는 파일만 있었습니다"}
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.1em] text-[var(--ink-2)]">
+            프로젝트 폴더를 여기에 드래그앤드롭
           </p>
-        )}
-        {saveM.error && (
-          <p className="font-mono text-[0.6875rem] tracking-[0.04em] text-[var(--accent)]">
-            {(saveM.error as Error).message}
+          <p className="font-mono text-[0.6875rem] tracking-[0.04em] text-[var(--muted-ink)]">
+            파일 내용이 아니라 구조(경로)만 저장됩니다
           </p>
-        )}
-      </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+            disabled={saveM.isPending}
+            className="mt-1 font-mono text-[0.8125rem] tracking-[0.06em]"
+          >
+            {saveM.isPending ? "저장 중…" : "폴더 선택"}
+          </Button>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            onChange={onPick}
+            className="hidden"
+            // @ts-expect-error — non-standard directory upload attributes
+            webkitdirectory=""
+            directory=""
+          />
+          {saved !== null && (
+            <p className="font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--accent)]">
+              {saved > 0
+                ? `${saved}개 파일 구조 저장됨`
+                : "무시되는 파일만 있었습니다"}
+            </p>
+          )}
+          {saveM.error && (
+            <p className="font-mono text-[0.6875rem] tracking-[0.04em] text-[var(--accent)]">
+              {(saveM.error as Error).message}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="border border-dashed border-[var(--line)] bg-[var(--paper)] px-6 py-10 text-center">
+          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--muted-ink)]">
+            참여하면 파일 구조를 올릴 수 있습니다
+          </p>
+        </div>
+      )}
 
       {/* Split: tree | chat */}
       <div className="mt-8 md:grid md:grid-cols-[20rem_1fr] md:gap-px md:bg-[var(--line)]">
@@ -156,7 +166,9 @@ export function FilesPanel({
             </p>
           ) : files.length === 0 ? (
             <p className="py-6 font-mono text-[0.6875rem] tracking-[0.04em] text-[var(--muted-ink)]">
-              아직 저장된 구조가 없습니다 — 위에 폴더를 드롭하세요
+              {isMember
+                ? "아직 저장된 구조가 없습니다 — 위에 폴더를 드롭하세요"
+                : "아직 저장된 구조가 없습니다"}
             </p>
           ) : (
             <FileTree
@@ -193,7 +205,7 @@ export function FilesPanel({
                 )}
               </div>
               {channel ? (
-                <ChannelChat channelId={channel.id} />
+                <ChannelChat channelId={channel.id} canSend={isMember} />
               ) : (
                 <p className="py-12 text-center font-mono text-[0.75rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
                   토론방 여는 중…

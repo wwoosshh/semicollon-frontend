@@ -140,6 +140,7 @@ export default function SpaceDetailPage() {
   const canManage = space.myRole === "리더" || me?.role === "운영진";
   const canPostAnnouncement = space.myRole === "리더" || me?.role === "운영진";
   const isMember = space.myRole !== null;
+  const canWrite = space.myRole !== null || me?.role === "운영진";
   const actionError = joinM.error || leaveM.error || statusM.error;
 
   const action = isMember ? (
@@ -295,15 +296,17 @@ export default function SpaceDetailPage() {
           <AnnouncementList spaceId={id} canPost={canPostAnnouncement} />
         )}
 
-        {tab === "게시판" && <BoardList spaceId={id} />}
+        {tab === "게시판" && <BoardList spaceId={id} canWrite={canWrite} />}
 
         {tab === "일정" && (
           <SpaceEventList spaceId={id} canCreate={canManage} />
         )}
 
-        {tab === "채팅" && <SpaceChat spaceId={id} />}
+        {tab === "채팅" && <SpaceChat spaceId={id} canSend={canWrite} />}
 
-        {tab === "파일" && <FilesPanel spaceId={id} canManage={canManage} />}
+        {tab === "파일" && (
+          <FilesPanel spaceId={id} isMember={canWrite} canManage={canManage} />
+        )}
       </div>
     </div>
   );

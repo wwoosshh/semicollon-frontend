@@ -14,7 +14,13 @@ interface Channel {
  * Resolves the space's main channel (first channel) and renders the
  * reusable ChannelChat against it. Preserves the existing 채팅 tab behavior.
  */
-export function SpaceChat({ spaceId }: { spaceId: string }) {
+export function SpaceChat({
+  spaceId,
+  canSend = true,
+}: {
+  spaceId: string;
+  canSend?: boolean;
+}) {
   const [channelId, setChannelId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,5 +43,5 @@ export function SpaceChat({ spaceId }: { spaceId: string }) {
     );
   }
 
-  return <ChannelChat channelId={channelId} />;
+  return <ChannelChat channelId={channelId} canSend={canSend} />;
 }

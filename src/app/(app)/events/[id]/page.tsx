@@ -15,6 +15,9 @@ import {
   formatTime,
 } from "@/lib/events";
 import { formatDate } from "@/lib/content";
+import { api } from "@/lib/api";
+import { useMe } from "@/lib/use-me";
+import { type SpaceDetail } from "@/lib/spaces";
 import { MonoLabel } from "@/components/ui/mono-label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -94,11 +97,19 @@ export default function EventDetailPage() {
   const id = params.id;
   const router = useRouter();
   const qc = useQueryClient();
+  const { data: me } = useMe();
 
   const { data: ev, isLoading, isError } = useQuery<EventDetail>({
     queryKey: ["event", id],
     queryFn: () => getEvent(id),
     enabled: !!id,
+  });
+
+  const spaceId = ev?.space_id ?? null;
+  const { data: space } = useQuery<SpaceDetail>({
+    queryKey: ["space", spaceId],
+    queryFn: () => api<SpaceDetail>(`/spaces/${spaceId}`),
+    enabled: !!spaceId,
   });
 
   const myM = useMutation({
@@ -137,6 +148,12 @@ export default function EventDetailPage() {
       </div>
     );
   }
+
+  // Global events (no space) are open to any logged-in user; space events
+  // require membership (or 운영진, who can attend everywhere).
+  const canAttend = ev.space_id
+    ? (space?.myRole ?? null) !== null || me?.role === "운영진"
+    : true;
 
   const dateLine =
     formatDate(ev.starts_at) +
@@ -207,8 +224,24 @@ export default function EventDetailPage() {
         <StatusToggle
           value={ev.myStatus}
           onChange={(s) => myM.mutate(s)}
-          disabled={myM.isPending}
+          disabled={myM.isPending || !canAttend}
         />
+        {!canAttend && (
+          <p className="mt-2 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--muted-ink)]">
+            참여하면 출석 체크를 할 수 있습니다
+            {ev.space_id && (
+              <>
+                {" — "}
+                <Link
+                  href={`/spaces/${ev.space_id}`}
+                  className="text-[var(--ink-2)] underline-offset-4 hover:text-[var(--accent)] hover:underline"
+                >
+                  참여하기 →
+                </Link>
+              </>
+            )}
+          </p>
+        )}
         {myM.isError && (
           <p className="mt-2 font-mono text-[0.6875rem] tracking-[0.04em] text-[var(--accent)]">
             {(myM.error as Error).message}

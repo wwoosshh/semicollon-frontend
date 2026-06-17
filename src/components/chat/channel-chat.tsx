@@ -31,7 +31,13 @@ function formatTime(iso: string): string {
  * Fetches history, connects socket.io, joins the channel and live-syncs
  * messages. Own messages are tinted with the accent.
  */
-export function ChannelChat({ channelId }: { channelId: string }) {
+export function ChannelChat({
+  channelId,
+  canSend = true,
+}: {
+  channelId: string;
+  canSend?: boolean;
+}) {
   const { data: me } = useMe();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -82,13 +88,14 @@ export function ChannelChat({ channelId }: { channelId: string }) {
 
   function send(e: React.FormEvent) {
     e.preventDefault();
+    if (!canSend) return;
     const body = text.trim();
     if (!body || !channelId || !socketRef.current) return;
     socketRef.current.emit("message", { channelId, body });
     setText("");
   }
 
-  const canSend = connected && text.trim().length > 0;
+  const canSubmit = canSend && connected && text.trim().length > 0;
 
   return (
     <section>
@@ -157,25 +164,48 @@ export function ChannelChat({ channelId }: { channelId: string }) {
       </div>
 
       {/* Composer */}
-      <form
-        onSubmit={send}
-        className="mt-4 flex items-center gap-2 border-t border-[var(--line)] pt-4"
-      >
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="메시지를 입력하세요…"
-          className="h-9 w-full rounded-[2px] border border-[var(--line)] bg-[var(--paper)] px-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted-ink)] focus-visible:border-[var(--ink)]"
-        />
-        <Button
-          type="submit"
-          disabled={!canSend}
-          className="h-9 shrink-0 font-mono text-[0.8125rem] tracking-[0.06em]"
+      {canSend ? (
+        <form
+          onSubmit={send}
+          className="mt-4 flex items-center gap-2 border-t border-[var(--line)] pt-4"
         >
-          전송 →
-        </Button>
-      </form>
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="메시지를 입력하세요…"
+            className="h-9 w-full rounded-[2px] border border-[var(--line)] bg-[var(--paper)] px-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted-ink)] focus-visible:border-[var(--ink)]"
+          />
+          <Button
+            type="submit"
+            disabled={!canSubmit}
+            className="h-9 shrink-0 font-mono text-[0.8125rem] tracking-[0.06em]"
+          >
+            전송 →
+          </Button>
+        </form>
+      ) : (
+        <div className="mt-4 flex items-center gap-2 border-t border-[var(--line)] pt-4">
+          <input
+            type="text"
+            disabled
+            placeholder="참여하면 메시지를 보낼 수 있습니다"
+            className="h-9 w-full rounded-[2px] border border-[var(--line)] bg-[var(--paper-2)] px-3 text-sm text-[var(--muted-ink)] outline-none placeholder:text-[var(--muted-ink)]"
+          />
+          <Button
+            type="button"
+            disabled
+            className="h-9 shrink-0 font-mono text-[0.8125rem] tracking-[0.06em]"
+          >
+            전송 →
+          </Button>
+        </div>
+      )}
+      {!canSend && (
+        <p className="mt-2 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--muted-ink)]">
+          참여하면 메시지를 보낼 수 있습니다
+        </p>
+      )}
     </section>
   );
 }

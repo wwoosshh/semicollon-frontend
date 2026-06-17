@@ -11,6 +11,8 @@ import {
   formatDate,
 } from "@/lib/content";
 import { useMe } from "@/lib/use-me";
+import { api } from "@/lib/api";
+import { type SpaceDetail } from "@/lib/spaces";
 import { MonoLabel } from "@/components/ui/mono-label";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,6 +33,13 @@ export default function PostDetailPage() {
     queryKey: ["post", id],
     queryFn: () => getPost(id),
     enabled: !!id,
+  });
+
+  const spaceId = post?.space_id ?? null;
+  const { data: space } = useQuery<SpaceDetail>({
+    queryKey: ["space", spaceId],
+    queryFn: () => api<SpaceDetail>(`/spaces/${spaceId}`),
+    enabled: !!spaceId,
   });
 
   const backHref = post?.space_id ? `/spaces/${post.space_id}` : "/news";
@@ -77,6 +86,11 @@ export default function PostDetailPage() {
 
   const canDelete = me?.role === "운영진" || me?.id === post.author_id;
   const scopeLabel = post.space_id ? "활동공간" : "전체";
+  // Global posts (no space) are open to any logged-in user; space posts require
+  // membership (or 운영진, who can write everywhere).
+  const canComment = post.space_id
+    ? (space?.myRole ?? null) !== null || me?.role === "운영진"
+    : true;
 
   function submitComment(e: React.FormEvent) {
     e.preventDefault();
@@ -167,7 +181,26 @@ export default function PostDetailPage() {
           </p>
         )}
 
-        {me ? (
+        {!me ? (
+          <p className="mt-6 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
+            로그인 후 댓글을 작성할 수 있습니다
+          </p>
+        ) : !canComment ? (
+          <p className="mt-6 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--muted-ink)]">
+            참여하면 댓글을 쓸 수 있습니다
+            {post.space_id && (
+              <>
+                {" — "}
+                <Link
+                  href={`/spaces/${post.space_id}`}
+                  className="text-[var(--ink-2)] underline-offset-4 hover:text-[var(--accent)] hover:underline"
+                >
+                  참여하기 →
+                </Link>
+              </>
+            )}
+          </p>
+        ) : (
           <form onSubmit={submitComment} className="mt-6">
             <textarea
               className={cn(fieldCls, "min-h-24 resize-y leading-relaxed")}
@@ -190,10 +223,6 @@ export default function PostDetailPage() {
               </Button>
             </div>
           </form>
-        ) : (
-          <p className="mt-6 font-mono text-[0.75rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
-            로그인 후 댓글을 작성할 수 있습니다
-          </p>
         )}
       </section>
     </div>

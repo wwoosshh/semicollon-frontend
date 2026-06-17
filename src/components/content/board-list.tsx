@@ -51,7 +51,13 @@ function Row({ p }: { p: PostListItem }) {
   );
 }
 
-export function BoardList({ spaceId }: { spaceId?: string }) {
+export function BoardList({
+  spaceId,
+  canWrite = true,
+}: {
+  spaceId?: string;
+  canWrite?: boolean;
+}) {
   const qc = useQueryClient();
   const key = ["posts", spaceId ?? "전체"] as const;
 
@@ -83,6 +89,12 @@ export function BoardList({ spaceId }: { spaceId?: string }) {
   return (
     <div>
       <div className="mb-6">
+        {!canWrite ? (
+          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--muted-ink)]">
+            참여하면 글을 쓸 수 있습니다
+          </p>
+        ) : (
+          <>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -135,6 +147,8 @@ export function BoardList({ spaceId }: { spaceId?: string }) {
               {createM.isPending ? "등록 중…" : "등록 →"}
             </Button>
           </form>
+        )}
+          </>
         )}
       </div>
 
