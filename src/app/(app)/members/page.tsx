@@ -5,6 +5,7 @@ import { useMe, type Me } from "@/lib/use-me";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusDot } from "@/components/ui/status-dot";
 import { MemberRow } from "./member-row";
+import { InviteCodePanel } from "./invite-code-panel";
 
 function ColHead({ ko, en }: { ko: string; en: string }) {
   return (
@@ -38,6 +39,7 @@ export default function MembersPage() {
           ) : null
         }
       />
+      {canEdit && <InviteCodePanel />}
       <table className="w-full border-collapse text-left">
         <thead>
           <tr className="border-b border-[var(--ink)]">

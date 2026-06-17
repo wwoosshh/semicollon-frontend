@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    cohort: "",
+    email: "",
+    password: "",
+    inviteCode: "",
+  });
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
@@ -16,7 +22,16 @@ export default function SignupPage() {
     try {
       const tokens = await api<{ accessToken: string; refreshToken: string }>(
         "/auth/signup",
-        { method: "POST", body: JSON.stringify(form) },
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            password: form.password,
+            cohort: Number(form.cohort),
+            inviteCode: form.inviteCode,
+          }),
+        },
       );
       authStore.set(tokens);
       router.push("/");
@@ -67,6 +82,20 @@ export default function SignupPage() {
             </label>
             <label className="flex flex-col gap-2">
               <span className="font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
+                COHORT
+              </span>
+              <input
+                className="rounded-[2px] border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-[var(--ink)] outline-none transition-colors focus:border-[var(--accent)]"
+                type="number"
+                min="1"
+                placeholder="기수"
+                required
+                value={form.cohort}
+                onChange={(e) => setForm({ ...form, cohort: e.target.value })}
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
                 EMAIL
               </span>
               <input
@@ -90,6 +119,23 @@ export default function SignupPage() {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-[var(--muted-ink)]">
+                INVITE CODE
+              </span>
+              <input
+                className="rounded-[2px] border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-[var(--ink)] outline-none transition-colors focus:border-[var(--accent)]"
+                placeholder="초대코드"
+                required
+                value={form.inviteCode}
+                onChange={(e) =>
+                  setForm({ ...form, inviteCode: e.target.value })
+                }
+              />
+              <span className="font-mono text-[0.625rem] tracking-[0.04em] text-[var(--muted-ink)]">
+                운영진에게 받은 코드를 입력하세요
+              </span>
             </label>
 
             {error && (
