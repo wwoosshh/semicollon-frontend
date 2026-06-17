@@ -238,3 +238,52 @@
     color: var(--muted-ink);
   }
 }
+
+/* ── Page-load reveal ────────────────────────────────────────────────────────
+   One orchestrated, staggered entrance. Blocks carry `.reveal` and an inline
+   `style={{ animationDelay }}` (0 / 80 / 160 / 240ms…). Runs once, then holds. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  opacity: 0;
+  animation: reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+
+/* ── Seamless horizontal marquee ─────────────────────────────────────────────
+   Track holds the content duplicated ×2; translating -50% loops seamlessly. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  display: inline-flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+/* ── Reduced motion: no transforms, no looping animation ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+}

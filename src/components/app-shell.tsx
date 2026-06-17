@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Nav } from "./nav";
+import { Footer } from "./footer";
 import { Button } from "@/components/ui/button";
 import { authStore } from "@/lib/auth-store";
 import { useMe } from "@/lib/use-me";
@@ -99,6 +100,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
         {children}
       </main>
+
+      <Footer />
     </div>
   );
 }
