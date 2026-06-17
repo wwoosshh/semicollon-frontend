@@ -8,6 +8,7 @@ export const NAV_ITEMS = [
   { num: "02", label: "멤버", href: "/members" },
   { num: "03", label: "활동공간", href: "/spaces" },
   { num: "04", label: "소식", href: "/news" },
+  { num: "05", label: "캘린더", href: "/calendar" },
 ] as const;
 
 function isActive(pathname: string, href: string) {

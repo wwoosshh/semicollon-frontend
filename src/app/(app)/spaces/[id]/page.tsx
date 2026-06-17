@@ -18,10 +18,11 @@ import { StatusDot } from "@/components/ui/status-dot";
 import { Button } from "@/components/ui/button";
 import { AnnouncementList } from "@/components/content/announcement-list";
 import { BoardList } from "@/components/content/board-list";
+import { SpaceEventList } from "@/components/calendar/space-event-list";
 import { cn } from "@/lib/utils";
 
-type Tab = "개요" | "공지" | "게시판";
-const TABS: readonly Tab[] = ["개요", "공지", "게시판"];
+type Tab = "개요" | "공지" | "게시판" | "일정";
+const TABS: readonly Tab[] = ["개요", "공지", "게시판", "일정"];
 
 function InfoRow({
   label,
@@ -293,6 +294,10 @@ export default function SpaceDetailPage() {
         )}
 
         {tab === "게시판" && <BoardList spaceId={id} />}
+
+        {tab === "일정" && (
+          <SpaceEventList spaceId={id} canCreate={canManage} />
+        )}
       </div>
     </div>
   );
