@@ -34,7 +34,7 @@
           ▼                                                  ▼
 ┌─────────────────────┐                           ┌──────────────────────┐
 │   LiveKit Cloud     │                           │  semicolon-db          │
-│   (SFU, 음성 미디어)│                           │  PostgreSQL (Railway) │
+│   (SFU, 음성 미디어)│                           │  PostgreSQL (Supabase)│
 └─────────────────────┘                           │  스키마/마이그레이션   │
                                                    └──────────────────────┘
                           파일/자료실 → Cloudflare R2 (백엔드가 presigned URL 발급)
@@ -42,7 +42,7 @@
 
 - **frontend** (`semicolon-frontend`): Next.js(App Router) PWA. 화면 + LiveKit으로 음성 연결 + Socket.IO로 채팅.
 - **backend** (`semicolon-backend`): NestJS API 서버. REST + Socket.IO(채팅/presence) + 자체 JWT 인증 + LiveKit 토큰 발급 + R2 파일 스토리지.
-- **db** (`semicolon-db`): PostgreSQL 스키마/마이그레이션의 진실 공급원. Railway Postgres에 적용. 백엔드가 Kysely로 소비.
+- **db** (`semicolon-db`): PostgreSQL 스키마/마이그레이션의 진실 공급원. **Supabase Postgres**에 적용. 백엔드가 Kysely로 소비.
 
 ## 4. 핵심 컨셉 — "활동 공간(Space)" 통합 모델
 
@@ -90,7 +90,7 @@
 ### DB
 | 항목 | 선택 |
 |---|---|
-| 엔진 | PostgreSQL (Railway 관리형) |
+| 엔진 | PostgreSQL (Supabase 관리형, 순수 DB로만 사용) |
 | 마이그레이션 | dbmate (SQL 기반, 언어 비종속) |
 | 진실 공급원 | `semicolon-db` 레포 |
 
@@ -107,7 +107,7 @@
 |---|---|---|
 | 프론트엔드 | Vercel | O (GitHub 푸시 자동 배포) |
 | 백엔드 API | Railway | O (소액) |
-| DB | Railway Postgres | O (소액) |
+| DB | Supabase (Postgres) | O |
 | 음성 | LiveKit Cloud | O |
 | 파일 스토리지 | Cloudflare R2 | O |
 

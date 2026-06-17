@@ -19,16 +19,22 @@
 
 ## 사전 수동 설정 (Manual Setup)
 
-### M1. Railway — 백엔드 + Postgres
-- [ ] https://railway.app 가입 → New Project.
-- [ ] **+ New → Database → PostgreSQL** 추가. 생성 후 Variables 탭에서 `DATABASE_URL`(public, `postgresql://...`) 복사.
-- [ ] 백엔드 서비스는 Task B9에서 GitHub 레포 연결로 추가(지금은 DB만).
+### M1. Supabase — DB (순수 관리형 Postgres로만 사용)
+- [ ] https://supabase.com 가입 → New Project (Region: `Northeast Asia (Seoul)` 권장). DB 비밀번호 설정.
+- [ ] Project Settings → Database → **Connection string**에서 연결 문자열 복사 → 이 값이 `DATABASE_URL`.
+  - 마이그레이션·백엔드 모두 **Session pooler** 또는 **Direct connection** 문자열 사용.
+  - ⚠️ **Transaction pooler(포트 6543)는 사용 금지** — `pg`의 prepared statement와 충돌함.
+  - SSL 필수(`?sslmode=require` 포함). Auth/Realtime/Storage 등 다른 Supabase 기능은 쓰지 않고 DB만 사용.
 
-### M2. Vercel — 프론트엔드
+### M2. Railway — 백엔드
+- [ ] https://railway.app 가입 → New Project. (DB는 Supabase를 쓰므로 **Railway Postgres는 만들지 않음.**)
+- [ ] 백엔드 서비스는 Task B9에서 GitHub 레포 연결로 추가.
+
+### M3. Vercel — 프론트엔드
 - [ ] https://vercel.com 가입 → `semicolon-frontend` 레포 import.
-- [ ] Environment Variable에 `NEXT_PUBLIC_API_URL`(백엔드 Railway 공개 URL, Task B9 후 확정)을 나중에 등록.
+- [ ] `NEXT_PUBLIC_API_URL`(백엔드 Railway 공개 URL, Task B9 후 확정)은 나중에 등록.
 
-### M3. Cloudflare R2 / LiveKit
+### M4. Cloudflare R2 / LiveKit
 - [ ] **0단계에서는 불필요.** 파일(4단계)·음성(5단계)에서 설정.
 
 ---
@@ -130,12 +136,12 @@ drop table users;
 drop type user_role;
 ```
 
-- [ ] **Step 3: Railway DB에 적용**
+- [ ] **Step 3: Supabase DB에 적용**
 
 ```bash
 npx dbmate up
 ```
-Expected: "Applying: ...create_users.sql" 성공. `schema.sql` 이 갱신됨.
+Expected: "Applying: ...create_users.sql" 성공. `schema.sql` 이 갱신됨. (`.env`의 `DATABASE_URL`이 Supabase 연결 문자열)
 
 - [ ] **Step 4: 적용 확인**
 
@@ -928,7 +934,7 @@ Railway 프로젝트 → New → GitHub Repo → `semicolon-backend` 선택.
 
 - [ ] **Step 2: 환경변수 등록**
 
-서비스 Variables에 `DATABASE_URL`(같은 프로젝트 Postgres 참조), `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`(프론트 Vercel 도메인, 나중에 갱신), `PORT`(Railway가 주입하는 `$PORT` 사용 — `main.ts`에서 `process.env.PORT ?? 3000`).
+서비스 Variables에 `DATABASE_URL`(**Supabase 연결 문자열**), `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`(프론트 Vercel 도메인, 나중에 갱신), `PORT`(Railway가 주입하는 `$PORT` 사용 — `main.ts`에서 `process.env.PORT ?? 3000`).
 
 - [ ] **Step 3: main.ts 포트 확인**
 
